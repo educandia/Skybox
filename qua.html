@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+</head>
+
+<body>
+  <script src="js/three.js"></script>
+  <script src="js/OrbitControls.js"></script>
+  <script src="js/dat.gui.min.js"></script>
+  <script src="js/stats.min.js"></script>
+  <script>
+    const SCREEN_WIDTH = window.innerWidth;
+    const SCREEN_HEIGHT = window.innerHeight;
+    const VIEW_ANGLE = 45;
+    const ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT;
+    const NEAR = 1;
+    const FAR = 10000;
+
+    let scene;
+    let camera;
+    let renderer;
+    let orbitControls;
+    let pointLight;
+    let ambientLight;
+    let stats;
+
+
+    const origin = new THREE.Vector3(0, 0, 0);
+
+    function initStats() {
+      stats = new Stats();
+      stats.domElement.style.position = 'absolute';
+      stats.domElement.style.left = '0px';
+      stats.domElement.style.top = '50px';
+      stats.setMode(0); // 0: fps, 1: ms
+      document.getElementById('stats').appendChild(stats.domElement);
+    }
+
+    function init() {
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+      camera.position.set(5, 5, 5);
+      camera.lookAt(origin);
+
+      renderer = new THREE.WebGLRenderer({
+        antialias: true
+      });
+      renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+      orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+      document.body.appendChild(renderer.domElement);
+
+
+      const gridHelper = new THREE.GridHelper(10, 10);
+      scene.add(gridHelper);
+
+      const axisHelper = new THREE.AxesHelper(100);
+      scene.add(axisHelper);
+
+      ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+
+      pointLight = new THREE.PointLight(0xffffff, 10, 1000);
+      pointLight.position.set(50, 200, -100);
+      scene.add(pointLight);
+
+      const quaternion = new THREE.Quaternion();
+      const axisNormalised = new THREE.Vector3(10, 1, 30).normalize();
+      const angle = Math.PI / 2;
+      quaternion.setFromAxisAngle(axisNormalised, angle);
+
+      const beforeVector = new THREE.Vector3(2, 0, 0);
+
+      const afterVector = beforeVector.clone();
+      afterVector.applyQuaternion(quaternion);
+
+      const geometry = new THREE.BoxGeometry(2, 1, 1);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xFA96D6
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.quaternion.copy(quaternion);
+      scene.add(mesh);
+
+      const beforeArrow = new THREE.ArrowHelper(
+        beforeVector.clone().normalize(),
+        origin,
+        beforeVector.length(),
+        0xFC6605,
+      );
+      scene.add(beforeArrow);
+
+      const afterArrow = new THREE.ArrowHelper(
+        afterVector.clone().normalize(),
+        origin,
+        afterVector.length() * 2,
+        0xffffff,
+      );
+      scene.add(afterArrow);
+      renderer.render(scene, camera);
+    }
+
+    function update() {}
+
+    function render() {
+      renderer.render(scene, camera);
+    }
+
+    function tick() {
+      update();
+      render();
+      requestAnimationFrame(tick);
+    }
+
+    init();
+    tick();
+  </script>
+</body>
+
+</html>
